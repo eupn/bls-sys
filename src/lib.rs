@@ -1,5 +1,3 @@
-#![recursion_limit = "1024"]
-
 use libc::{c_int, size_t, uint64_t, uint8_t};
 use paste;
 use std::ffi::{CStr, CString};
@@ -25,28 +23,40 @@ extern "C" {
     fn blsSecretKeySerialize(
         buf: *mut uint8_t,
         buf_size: size_t,
-        id: *const BlsSecretKey,
+        sk: *const BlsSecretKey,
     ) -> size_t;
     fn blsSecretKeyDeserialize(
-        id: *mut BlsSecretKey,
+        sk: *mut BlsSecretKey,
         buf: *const uint8_t,
         buf_size: size_t,
     ) -> size_t;
     fn blsSecretKeyIsEqual(lhs: *const BlsSecretKey, rhs: *const BlsSecretKey) -> size_t;
-    fn blsSecretKeySetDecStr(id: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t)
+    fn blsSecretKeySetDecStr(sk: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t)
         -> size_t;
-    fn blsSecretKeySetHexStr(id: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t)
+    fn blsSecretKeySetHexStr(sk: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t)
         -> size_t;
     fn blsSecretKeyGetDecStr(
         buf: *mut uint8_t,
         buf_size: size_t,
-        id: *const BlsSecretKey,
+        sk: *const BlsSecretKey,
     ) -> size_t;
     fn blsSecretKeyGetHexStr(
         buf: *mut uint8_t,
         buf_size: size_t,
-        id: *const BlsSecretKey,
+        sk: *const BlsSecretKey,
     ) -> size_t;
+    fn blsSecretKeySetLittleEndian(
+        sk: *mut BlsSecretKey,
+        buf: *const uint8_t,
+        buf_size: size_t,
+    ) -> c_int;
+    fn blsSecretKeySetLittleEndianMod(
+        sk: *mut BlsSecretKey,
+        buf: *const uint8_t,
+        buf_size: size_t,
+    ) -> c_int;
+    fn blsGetPublicKey(pk: *mut BlsPublicKey, sk: *const BlsSecretKey);
+    fn blsSecretKeySetByCSPRNG(sk: *mut BlsSecretKey) -> c_int;
 
     fn blsPublicKeySerialize(
         buf: *mut uint8_t,
@@ -71,7 +81,7 @@ extern "C" {
     fn blsPublicKeyGetHexStr(
         buf: *mut uint8_t,
         buf_size: size_t,
-        id: *const BlsPublicKey,
+        pk: *const BlsPublicKey,
     ) -> size_t;
 
     fn blsSignatureSerialize(
@@ -99,6 +109,14 @@ extern "C" {
         buf_size: size_t,
         id: *const BlsSignature,
     ) -> size_t;
+
+    fn blsSign(sig: *mut BlsSignature, sk: *const BlsSecretKey, msg: *const uint8_t, size: size_t);
+    fn blsVerify(
+        sig: *const BlsSignature,
+        pk: *const BlsPublicKey,
+        msg: *const uint8_t,
+        size: size_t,
+    ) -> c_int;
 }
 
 const COMPILED_VAR: c_int = MCLBN_FR_UNIT_SIZE * 10 + MCLBN_FP_UNIT_SIZE;
@@ -124,12 +142,24 @@ impl MclBnFr {
     }
 }
 
+impl Default for MclBnFr {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[repr(C)]
 pub struct MclBnG1([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 3]);
 
 impl MclBnG1 {
     pub fn new() -> Self {
         Self([0; MCLBN_FP_UNIT_SIZE as usize * 3])
+    }
+}
+
+impl Default for MclBnG1 {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -154,6 +184,12 @@ impl std::fmt::Debug for MclBnG2 {
     }
 }
 
+impl Default for MclBnG2 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[repr(C)]
 pub struct MclBnGT([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 12]);
 
@@ -175,9 +211,60 @@ pub struct MclBnFp2([MclBnFp; 2]);
 #[repr(C)]
 pub struct BlsId(MclBnFr);
 
+impl BlsId {
+    pub fn set_int(&mut self, x: i32) {
+        unsafe {
+            blsIdSetInt(self, x);
+        }
+    }
+}
+
 #[derive(Debug)]
 #[repr(C)]
 pub struct BlsSecretKey(MclBnFr);
+
+impl BlsSecretKey {
+    pub fn new_random() -> Result<Self, ()> {
+        let mut sk = BlsSecretKey::new();
+        let res = unsafe { blsSecretKeySetByCSPRNG(&mut sk) };
+
+        if res == 0 {
+            Ok(sk)
+        } else {
+            Err(())
+        }
+    }
+
+    pub fn set_little_endian(&mut self, buf: &[u8]) {
+        unsafe {
+            blsSecretKeySetLittleEndian(self, buf.as_ptr(), buf.len());
+        }
+    }
+
+    pub fn set_little_endian_mod(&mut self, buf: &[u8]) {
+        unsafe {
+            blsSecretKeySetLittleEndianMod(self, buf.as_ptr(), buf.len());
+        }
+    }
+
+    pub fn to_public_key(&self) -> BlsPublicKey {
+        let mut pk = BlsPublicKey::new();
+        unsafe {
+            blsGetPublicKey(&mut pk, self);
+        }
+
+        pk
+    }
+
+    pub fn sign(&self, msg: &[u8]) -> BlsSignature {
+        let mut sig = BlsSignature::new();
+        unsafe {
+            blsSign(&mut sig, self, msg.as_ptr(), msg.len());
+        }
+
+        sig
+    }
+}
 
 #[derive(Debug)]
 #[repr(C)]
@@ -186,6 +273,14 @@ pub struct BlsPublicKey(MclBnG2);
 #[derive(Debug)]
 #[repr(C)]
 pub struct BlsSignature(MclBnG1);
+
+impl BlsSignature {
+    pub fn verify(&self, public_key: &BlsPublicKey, msg: &[u8]) -> bool {
+        let res = unsafe { blsVerify(self, public_key, msg.as_ptr(), msg.len()) };
+
+        res == 1
+    }
+}
 
 pub fn bls_init(curve: CurveType) -> Result<(), isize> {
     let res = unsafe { blsInit(curve as c_int, COMPILED_VAR) };
@@ -252,7 +347,7 @@ macro_rules! impl_api {
                         let mut buf = buf.iter().map(|c| *c)
                             .take_while(|n| *n != 0)
                             .collect::<Vec<u8>>();
-                        buf.push(0u8);
+                        buf.push(0u8); // Append null-terminator
 
                         let s = CStr::from_bytes_with_nul(&buf);
                         if let Ok(s) = s {
@@ -308,7 +403,14 @@ macro_rules! impl_api {
                     res == 1
                 }
             }
+
             impl Eq for [<Bls $api_name>] {}
+
+            impl Default for [<Bls $api_name>] {
+                fn default() -> Self {
+                    Self::new()
+                }
+            }
         }
     }
 }
@@ -317,11 +419,3 @@ impl_api!(MclBnFr, Id);
 impl_api!(MclBnFr, SecretKey);
 impl_api!(MclBnG2, PublicKey);
 impl_api!(MclBnG1, Signature);
-
-impl BlsId {
-    pub fn set_int(&mut self, x: i32) {
-        unsafe {
-            blsIdSetInt(self, x);
-        }
-    }
-}

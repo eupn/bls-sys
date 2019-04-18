@@ -133,3 +133,35 @@ mod secret_key {
         assert_eq!("2a", &dec_str);
     }
 }
+
+mod signature {
+    use bls_sys::{bls_init, BlsSecretKey, CurveType};
+
+    #[test]
+    pub fn sign_verify_ok() {
+        bls_init(CurveType::Bls12CurveFp381).unwrap();
+        let sk = BlsSecretKey::new_random().unwrap();
+        let pk = sk.to_public_key();
+        let msg = b"test message";
+        let sig = sk.sign(&msg[..]);
+
+        assert!(sig.verify(&pk, &msg[..]));
+    }
+
+    #[test]
+    pub fn sign_verify_fail() {
+        bls_init(CurveType::Bls12CurveFp381).unwrap();
+        let sk = BlsSecretKey::new_random().unwrap();
+        let pk = sk.to_public_key();
+        let msg = b"test message";
+        let sig = sk.sign(&msg[..]);
+
+        // Shouldn't verify with different message
+        let diff_msg = b"different message";
+        assert!(!sig.verify(&pk, &diff_msg[..]));
+
+        // Shouldn't verify with different public key
+        let diff_pk = BlsSecretKey::new_random().unwrap().to_public_key();
+        assert!(!sig.verify(&diff_pk, &msg[..]));
+    }
+}
