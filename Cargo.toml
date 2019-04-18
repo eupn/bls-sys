@@ -9,3 +9,4 @@ build = "build.rs"
 [dependencies]
 openssl = "0.10.20"
 libc = "0.2.51"
+paste = "0.1.5"

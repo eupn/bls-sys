@@ -1,65 +1,135 @@
-use bls_sys::{bls_id_deserialize, bls_id_is_equal, bls_id_serialize, bls_id_set_int, bls_init, BlsId, CurveType, bls_id_set_dec_str, bls_id_set_hex_str, bls_id_get_dec_str, bls_id_get_hex_str};
+mod id {
+    use bls_sys::{bls_init, BlsId, CurveType};
 
-#[test]
-pub fn id_serde_roundtrip() {
-    bls_init(CurveType::CurveFp254BNb);
+    #[test]
+    pub fn id_serde_roundtrip() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
 
-    let mut id = BlsId::new();
-    bls_id_set_int(&mut id, 42);
+        let mut id = BlsId::new();
+        id.set_int(42);
 
-    let mut buf = [0u8; 32];
-    let res = bls_id_serialize(&id, &mut buf).unwrap();
+        let mut buf = [0u8; 32];
+        id.serialize(&mut buf).unwrap();
 
-    let mut id2 = BlsId::new();
-    let res = bls_id_deserialize(&mut id2, &buf).unwrap();
+        let mut id2 = BlsId::new();
+        id2.deserialize(&buf).unwrap();
 
-    assert!(bls_id_is_equal(&id, &id2));
+        assert_eq!(id, id2);
+    }
+
+    #[test]
+    pub fn id_dec_str_set() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
+
+        let mut id = BlsId::new();
+        id.set_dec_str("42").unwrap();
+
+        let mut id_actual = BlsId::new();
+        id_actual.set_int(42);
+
+        assert_eq!(id, id_actual)
+    }
+
+    #[test]
+    pub fn id_dec_str_get() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
+
+        let mut id = BlsId::new();
+        id.set_int(42);
+
+        let dec_str = id.get_dec_str().unwrap();
+        assert_eq!("42", &dec_str);
+    }
+
+    #[test]
+    pub fn id_hex_str_set() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
+
+        let mut id = BlsId::new();
+        id.set_hex_str("2a").unwrap();
+
+        let mut id_actual = BlsId::new();
+        id_actual.set_int(0x2a); // 42
+
+        assert_eq!(id, id_actual)
+    }
+
+    #[test]
+    pub fn id_hex_str_get() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
+
+        let mut id = BlsId::new();
+        id.set_int(42);
+
+        let dec_str = id.get_hex_str().unwrap();
+        assert_eq!("2a", &dec_str);
+    }
 }
 
-#[test]
-pub fn id_dec_str_set() {
-    bls_init(CurveType::CurveFp254BNb);
+mod secret_key {
+    use bls_sys::{bls_init, BlsSecretKey, CurveType};
 
-    let mut id = BlsId::new();
-    bls_id_set_dec_str(&mut id, "42").unwrap();
+    #[test]
+    pub fn secret_key_serde_roundtrip() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
 
-    let mut id_actual = BlsId::new();
-    bls_id_set_int(&mut id_actual, 42);
+        let mut secret_key = BlsSecretKey::new();
+        secret_key.set_dec_str("42").unwrap();
 
-    assert!(bls_id_is_equal(&id, &id_actual))
-}
+        let mut buf = [0u8; 32];
+        secret_key.serialize(&mut buf).unwrap();
 
-#[test]
-pub fn id_dec_str_get() {
-    bls_init(CurveType::CurveFp254BNb);
+        let mut secret_key2 = BlsSecretKey::new();
+        secret_key2.deserialize(&buf).unwrap();
 
-    let mut id = BlsId::new();
-    bls_id_set_int(&mut id, 42);
+        assert_eq!(secret_key, secret_key2);
+    }
 
-    let dec_str = bls_id_get_dec_str(&id).unwrap();
-    assert_eq!("42", &dec_str);
-}
+    #[test]
+    pub fn secret_key_dec_str_set() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
 
-#[test]
-pub fn id_hex_str_set() {
-    bls_init(CurveType::CurveFp254BNb);
+        let mut secret_key = BlsSecretKey::new();
+        secret_key.set_dec_str("42").unwrap();
 
-    let mut id = BlsId::new();
-    bls_id_set_hex_str(&mut id, "2a").unwrap();
+        let mut secret_key_actual = BlsSecretKey::new();
+        secret_key_actual.set_dec_str("42").unwrap();
 
-    let mut id_actual = BlsId::new();
-    bls_id_set_int(&mut id_actual, 0x2a); // 42
+        assert_eq!(secret_key, secret_key_actual)
+    }
 
-    assert!(bls_id_is_equal(&id, &id_actual))
-}
+    #[test]
+    pub fn secret_key_dec_str_get() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
 
-#[test]
-pub fn id_hex_str_get() {
-    bls_init(CurveType::CurveFp254BNb);
+        let mut secret_key = BlsSecretKey::new();
+        secret_key.set_dec_str("42").unwrap();
 
-    let mut id = BlsId::new();
-    bls_id_set_int(&mut id, 42);
+        let dec_str = secret_key.get_dec_str().unwrap();
+        assert_eq!("42", &dec_str);
+    }
 
-    let dec_str = bls_id_get_hex_str(&id).unwrap();
-    assert_eq!("2a", &dec_str);
+    #[test]
+    pub fn secret_key_hex_str_set() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
+
+        let mut secret_key = BlsSecretKey::new();
+        secret_key.set_hex_str("2a").unwrap();
+
+        let mut secret_key_actual = BlsSecretKey::new();
+        secret_key_actual.set_dec_str("42").unwrap();
+
+        assert_eq!(secret_key, secret_key_actual)
+    }
+
+    #[test]
+    pub fn secret_key_hex_str_get() {
+        bls_init(CurveType::CurveFp254BNb).unwrap();
+
+        let mut secret_key = BlsSecretKey::new();
+        secret_key.set_dec_str("42").unwrap();
+
+        let dec_str = secret_key.get_hex_str().unwrap();
+        assert_eq!("2a", &dec_str);
+    }
 }
