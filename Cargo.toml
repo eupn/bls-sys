@@ -1,0 +1,11 @@
+[package]
+name = "bls-sys"
+version = "0.1.0"
+authors = ["Eugene P. <eupn@protonmail.com>"]
+edition = "2018"
+links = "bls384_256"
+build = "build.rs"
+
+[dependencies]
+openssl = "0.10.20"
+libc = "0.2.51"
