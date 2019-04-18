@@ -31,6 +31,8 @@ fn main() {
     Command::new("make")
         .current_dir("bls")
         .arg("all")
+        .arg("MCL_USE_GMP=0")
+        .arg("MCL_USE_OPENSSL=0")
         .status()
         .expect("failed to make!");
 }
