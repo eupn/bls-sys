@@ -125,11 +125,11 @@ impl MclBnFr {
 }
 
 #[repr(C)]
-pub struct MclBnG1([uint64_t; MCLBN_FR_UNIT_SIZE as usize * 3]);
+pub struct MclBnG1([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 3]);
 
 impl MclBnG1 {
     pub fn new() -> Self {
-        Self([0; MCLBN_FR_UNIT_SIZE as usize * 3])
+        Self([0; MCLBN_FP_UNIT_SIZE as usize * 3])
     }
 }
 
@@ -140,11 +140,11 @@ impl std::fmt::Debug for MclBnG1 {
 }
 
 #[repr(C)]
-pub struct MclBnG2([uint64_t; MCLBN_FR_UNIT_SIZE as usize * 2 * 3]);
+pub struct MclBnG2([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 2 * 3]);
 
 impl MclBnG2 {
     pub fn new() -> Self {
-        Self([0; MCLBN_FR_UNIT_SIZE as usize * 2 * 3])
+        Self([0; MCLBN_FP_UNIT_SIZE as usize * 2 * 3])
     }
 }
 
@@ -155,7 +155,7 @@ impl std::fmt::Debug for MclBnG2 {
 }
 
 #[repr(C)]
-pub struct MclBnGT([uint64_t; MCLBN_FR_UNIT_SIZE as usize * 12]);
+pub struct MclBnGT([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 12]);
 
 impl std::fmt::Debug for MclBnGT {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -165,7 +165,7 @@ impl std::fmt::Debug for MclBnGT {
 
 #[derive(Debug)]
 #[repr(C)]
-pub struct MclBnFp([uint64_t; MCLBN_FR_UNIT_SIZE as usize]);
+pub struct MclBnFp([uint64_t; MCLBN_FP_UNIT_SIZE as usize]);
 
 #[derive(Debug)]
 #[repr(C)]
