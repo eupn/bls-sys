@@ -3,8 +3,8 @@
 use libc::{c_int, size_t, uint64_t, uint8_t};
 use paste;
 use std::ffi::{CStr, CString};
+use std::fmt::{Error, Formatter};
 use std::os::raw::c_char;
-use std::fmt::{Formatter, Error};
 
 pub const MCLBN_FR_UNIT_SIZE: c_int = 4;
 pub const MCLBN_FP_UNIT_SIZE: c_int = 6;
@@ -22,29 +22,83 @@ extern "C" {
     fn blsIdGetDecStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsId) -> size_t;
     fn blsIdGetHexStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsId) -> size_t;
 
-    fn blsSecretKeySerialize(buf: *mut uint8_t, buf_size: size_t, id: *const BlsSecretKey) -> size_t;
-    fn blsSecretKeyDeserialize(id: *mut BlsSecretKey, buf: *const uint8_t, buf_size: size_t) -> size_t;
+    fn blsSecretKeySerialize(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsSecretKey,
+    ) -> size_t;
+    fn blsSecretKeyDeserialize(
+        id: *mut BlsSecretKey,
+        buf: *const uint8_t,
+        buf_size: size_t,
+    ) -> size_t;
     fn blsSecretKeyIsEqual(lhs: *const BlsSecretKey, rhs: *const BlsSecretKey) -> size_t;
-    fn blsSecretKeySetDecStr(id: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t) -> size_t;
-    fn blsSecretKeySetHexStr(id: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t) -> size_t;
-    fn blsSecretKeyGetDecStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsSecretKey) -> size_t;
-    fn blsSecretKeyGetHexStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsSecretKey) -> size_t;
+    fn blsSecretKeySetDecStr(id: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t)
+        -> size_t;
+    fn blsSecretKeySetHexStr(id: *mut BlsSecretKey, buf: *const c_char, buf_size: size_t)
+        -> size_t;
+    fn blsSecretKeyGetDecStr(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsSecretKey,
+    ) -> size_t;
+    fn blsSecretKeyGetHexStr(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsSecretKey,
+    ) -> size_t;
 
-    fn blsPublicKeySerialize(buf: *mut uint8_t, buf_size: size_t, id: *const BlsPublicKey) -> size_t;
-    fn blsPublicKeyDeserialize(id: *mut BlsPublicKey, buf: *const uint8_t, buf_size: size_t) -> size_t;
+    fn blsPublicKeySerialize(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsPublicKey,
+    ) -> size_t;
+    fn blsPublicKeyDeserialize(
+        id: *mut BlsPublicKey,
+        buf: *const uint8_t,
+        buf_size: size_t,
+    ) -> size_t;
     fn blsPublicKeyIsEqual(lhs: *const BlsPublicKey, rhs: *const BlsPublicKey) -> size_t;
-    fn blsPublicKeySetDecStr(id: *mut BlsPublicKey, buf: *const c_char, buf_size: size_t) -> size_t;
-    fn blsPublicKeySetHexStr(id: *mut BlsPublicKey, buf: *const c_char, buf_size: size_t) -> size_t;
-    fn blsPublicKeyGetDecStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsPublicKey) -> size_t;
-    fn blsPublicKeyGetHexStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsPublicKey) -> size_t;
+    fn blsPublicKeySetDecStr(id: *mut BlsPublicKey, buf: *const c_char, buf_size: size_t)
+        -> size_t;
+    fn blsPublicKeySetHexStr(id: *mut BlsPublicKey, buf: *const c_char, buf_size: size_t)
+        -> size_t;
+    fn blsPublicKeyGetDecStr(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsPublicKey,
+    ) -> size_t;
+    fn blsPublicKeyGetHexStr(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsPublicKey,
+    ) -> size_t;
 
-    fn blsSignatureSerialize(buf: *mut uint8_t, buf_size: size_t, id: *const BlsSignature) -> size_t;
-    fn blsSignatureDeserialize(id: *mut BlsSignature, buf: *const uint8_t, buf_size: size_t) -> size_t;
+    fn blsSignatureSerialize(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsSignature,
+    ) -> size_t;
+    fn blsSignatureDeserialize(
+        id: *mut BlsSignature,
+        buf: *const uint8_t,
+        buf_size: size_t,
+    ) -> size_t;
     fn blsSignatureIsEqual(lhs: *const BlsSignature, rhs: *const BlsSignature) -> size_t;
-    fn blsSignatureSetDecStr(id: *mut BlsSignature, buf: *const c_char, buf_size: size_t) -> size_t;
-    fn blsSignatureSetHexStr(id: *mut BlsSignature, buf: *const c_char, buf_size: size_t) -> size_t;
-    fn blsSignatureGetDecStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsSignature) -> size_t;
-    fn blsSignatureGetHexStr(buf: *mut uint8_t, buf_size: size_t, id: *const BlsSignature) -> size_t;
+    fn blsSignatureSetDecStr(id: *mut BlsSignature, buf: *const c_char, buf_size: size_t)
+        -> size_t;
+    fn blsSignatureSetHexStr(id: *mut BlsSignature, buf: *const c_char, buf_size: size_t)
+        -> size_t;
+    fn blsSignatureGetDecStr(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsSignature,
+    ) -> size_t;
+    fn blsSignatureGetHexStr(
+        buf: *mut uint8_t,
+        buf_size: size_t,
+        id: *const BlsSignature,
+    ) -> size_t;
 }
 
 const COMPILED_VAR: c_int = MCLBN_FR_UNIT_SIZE * 10 + MCLBN_FP_UNIT_SIZE;
