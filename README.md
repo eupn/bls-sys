@@ -8,6 +8,11 @@ This is a FFI binding library to [herumi](https://github.com/herumi)'s [BLS](htt
 that requires support of [BLS pairing-based cryptography](https://en.wikipedia.org/wiki/Boneh–Lynn–Shacham), especially threshold signature generation and
 signature/keys aggregation.
 
+### Prerequisites
+
+* `make` for [bls](bls) and [mcl](mcl) libraries building
+* Rust 1.31 or greater (proc. macros are used internally)
+
 ### Usage
 
 Add as dependency to your crate's `Cargo.toml`:
