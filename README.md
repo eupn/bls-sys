@@ -61,9 +61,33 @@ pub fn main() {
     assert!(!sig.verify(&diff_pk, &msg[..]));
 ```
 
+##### Signature aggregation
+
+```rust
+    use bls_sys::{bls_init, BlsSecretKey, CurveType};
+
+    bls_init(CurveType::Bls12CurveFp381).unwrap();
+    
+    let sk1 = BlsSecretKey::new_random().unwrap();
+    let sk2 = BlsSecretKey::new_random().unwrap();
+    let pk1 = sk1.to_public_key();
+    let pk2 = sk2.to_public_key();
+    
+    let msg = b"test message";
+    
+    let sig1 = sk1.sign(&msg[..]);
+    let sig2 = sk2.sign(&msg[..]);
+    
+    let agg_pk = pk1 + pk2;
+    let agg_sig = sig1 + sig2;
+    
+    // Verify aggregated signature from diff. secret keys by aggregated public key
+    assert!(agg_sig.verify(&agg_pk, &msg[..]));
+```
+
 #### TODO
 
-- [x] Basic types FFI (`Id`, `PublicKey`, `SecrerKey`, `Signature`)
+- [x] Basic types FFI (`Id`, `PublicKey`, `SecretKey`, `Signature`)
 - [x] Ser/De for basic types (`.serialize()`, `.deserialize()`)
 - [x] Keypair generation
 - [x] Simple signature creation and verification
