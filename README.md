@@ -58,7 +58,7 @@ pub fn main() {
 
     // Shouldn't verify with different public key
     let diff_pk = BlsSecretKey::new_random().unwrap().to_public_key();
-    assert!(!sig.verify(&diff_pk, &msg[..]));    
+    assert!(!sig.verify(&diff_pk, &msg[..]));
 ```
 
 #### TODO
@@ -67,9 +67,11 @@ pub fn main() {
 - [x] Ser/De for basic types (`.serialize()`, `.deserialize()`)
 - [x] Keypair generation
 - [x] Simple signature creation and verification
-- [ ] `Add` and `Sub` operations on basic types
+- [x] `Add` and `Sub` operations on basic types
+- [x] Key and Signature aggregation
 - [ ] Shamir Secret Sharing
 - [ ] Threshold signature generation
+- [ ] Proof-of-Possession
 
 #### Alternatives
 

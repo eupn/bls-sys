@@ -2,6 +2,7 @@ use libc::{c_int, size_t, uint64_t, uint8_t};
 use paste;
 use std::ffi::{CStr, CString};
 use std::fmt::{Error, Formatter};
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 use std::os::raw::c_char;
 
 pub const MCLBN_FR_UNIT_SIZE: c_int = 4;
@@ -57,6 +58,8 @@ extern "C" {
     ) -> c_int;
     fn blsGetPublicKey(pk: *mut BlsPublicKey, sk: *const BlsSecretKey);
     fn blsSecretKeySetByCSPRNG(sk: *mut BlsSecretKey) -> c_int;
+    fn blsSecretKeyAdd(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
+    fn blsSecretKeySub(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
 
     fn blsPublicKeySerialize(
         buf: *mut uint8_t,
@@ -83,6 +86,8 @@ extern "C" {
         buf_size: size_t,
         pk: *const BlsPublicKey,
     ) -> size_t;
+    fn blsPublicKeyAdd(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
+    fn blsPublicKeySub(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
 
     fn blsSignatureSerialize(
         buf: *mut uint8_t,
@@ -109,6 +114,8 @@ extern "C" {
         buf_size: size_t,
         id: *const BlsSignature,
     ) -> size_t;
+    fn blsSignatureAdd(this_sig: *mut BlsSignature, other: *const BlsSignature);
+    fn blsSignatureSub(this_sig: *mut BlsSignature, other: *const BlsSignature);
 
     fn blsSign(sig: *mut BlsSignature, sk: *const BlsSecretKey, msg: *const uint8_t, size: size_t);
     fn blsVerify(
@@ -132,7 +139,7 @@ pub enum CurveType {
     Bls12CurveFp381 = 5,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct MclBnFr([uint64_t; MCLBN_FR_UNIT_SIZE as usize]);
 
@@ -148,6 +155,7 @@ impl Default for MclBnFr {
     }
 }
 
+#[derive(Clone)]
 #[repr(C)]
 pub struct MclBnG1([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 3]);
 
@@ -169,6 +177,7 @@ impl std::fmt::Debug for MclBnG1 {
     }
 }
 
+#[derive(Clone)]
 #[repr(C)]
 pub struct MclBnG2([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 2 * 3]);
 
@@ -190,6 +199,7 @@ impl Default for MclBnG2 {
     }
 }
 
+#[derive(Clone)]
 #[repr(C)]
 pub struct MclBnGT([uint64_t; MCLBN_FP_UNIT_SIZE as usize * 12]);
 
@@ -199,15 +209,15 @@ impl std::fmt::Debug for MclBnGT {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct MclBnFp([uint64_t; MCLBN_FP_UNIT_SIZE as usize]);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct MclBnFp2([MclBnFp; 2]);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct BlsId(MclBnFr);
 
@@ -219,7 +229,7 @@ impl BlsId {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct BlsSecretKey(MclBnFr);
 
@@ -266,11 +276,11 @@ impl BlsSecretKey {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct BlsPublicKey(MclBnG2);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct BlsSignature(MclBnG1);
 
@@ -288,6 +298,7 @@ pub fn bls_init(curve: CurveType) -> Result<(), isize> {
     if res == 0 {
         Ok(())
     } else {
+        eprintln!("Error: {}", res);
         Err(res as isize)
     }
 }
@@ -415,7 +426,57 @@ macro_rules! impl_api {
     }
 }
 
+macro_rules! impl_ops {
+    ($api_name:ident) => {
+        paste::item! {
+            impl Add for [<Bls $api_name>] {
+                type Output = [<Bls $api_name>];
+                fn add(mut self, other: [<Bls $api_name>]) -> Self::Output {
+                    unsafe {
+                        [<bls $api_name Add>](&mut self, &other);
+                    }
+
+                    self
+                }
+            }
+
+            impl AddAssign for [<Bls $api_name>] {
+                fn add_assign(&mut self, other: [<Bls $api_name>]) {
+                    unsafe {
+                        [<bls $api_name Add>](self, &other);
+                    }
+                }
+            }
+
+            impl Sub for [<Bls $api_name>] {
+                type Output = [<Bls $api_name>];
+                fn sub(mut self, other: [<Bls $api_name>]) -> Self::Output {
+                    unsafe {
+                        [<bls $api_name Sub>](&mut self, &other);
+                    }
+
+                    self
+                }
+            }
+
+            impl SubAssign for [<Bls $api_name>] {
+                fn sub_assign(&mut self, other: [<Bls $api_name>]) {
+                    unsafe {
+                        [<bls $api_name Sub>](self, &other);
+                    }
+                }
+            }
+        }
+    };
+}
+
+// Implement API methods for library types
 impl_api!(MclBnFr, Id);
 impl_api!(MclBnFr, SecretKey);
 impl_api!(MclBnG2, PublicKey);
 impl_api!(MclBnG1, Signature);
+
+// Implement arithmetic operations for supported types
+impl_ops!(SecretKey);
+impl_ops!(PublicKey);
+impl_ops!(Signature);
