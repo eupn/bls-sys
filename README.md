@@ -1,6 +1,6 @@
 ## bls-sys
 
-_Warning: this library is not crypto/security audited in any way. Use on your own risk._
+_Warning: this library was not crypto/security audited in any way. Use on your own risk._
 
 ### Synopsis
 
