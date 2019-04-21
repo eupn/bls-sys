@@ -66,10 +66,10 @@ pub fn main() {
 ```rust
     use bls_sys::{bls_init, BlsSecretKey, CurveType};
 
-    bls_init(CurveType::Bls12CurveFp381).unwrap();
+    bls_init(CurveType::Bls12CurveFp381).expect("Unable to initialise BLS lib");
     
-    let sk1 = BlsSecretKey::new_random().unwrap();
-    let sk2 = BlsSecretKey::new_random().unwrap();
+    let sk1 = BlsSecretKey::new_random().expect("Unable to obtain system randomness");
+    let sk2 = BlsSecretKey::new_random().expect("Unable to obtain system randomness");
     let pk1 = sk1.to_public_key();
     let pk2 = sk2.to_public_key();
     
