@@ -61,7 +61,7 @@ extern "C" {
     fn blsSecretKeyAdd(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
     fn blsSecretKeySub(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
     fn blsSecretKeyShare(sk: *mut BlsSecretKey, msk: *const BlsSecretKey, k: size_t, id: *const BlsId) -> c_int;
-    fn blsSecretKeyRecover(sk: *mut BlsSecretKey, sk_vec: *const BlsSecretKey, id_vec: *const BlsId, k: size_t) -> c_int;
+    fn blsSecretKeyRecover(sk: *mut BlsSecretKey, sk_vec: *const BlsSecretKey, id_vec: *const BlsId, n: size_t) -> c_int;
 
     fn blsPublicKeySerialize(
         buf: *mut uint8_t,
@@ -90,8 +90,8 @@ extern "C" {
     ) -> size_t;
     fn blsPublicKeyAdd(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
     fn blsPublicKeySub(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
-    fn blsPublicKeyShare(sk: *mut BlsPublicKey, msk: *const BlsPublicKey, k: size_t, id: *const BlsId) -> c_int;
-    fn blsPublicKeyRecover(sk: *mut BlsPublicKey, sk_vec: *const BlsPublicKey, id_vec: *const BlsId, k: size_t) -> c_int;
+    fn blsPublicKeyShare(pk: *mut BlsPublicKey, mpk: *const BlsPublicKey, k: size_t, id: *const BlsId) -> c_int;
+    fn blsPublicKeyRecover(pk: *mut BlsPublicKey, pk_vec: *const BlsPublicKey, id_vec: *const BlsId, n: size_t) -> c_int;
 
     fn blsSignatureSerialize(
         buf: *mut uint8_t,
@@ -120,6 +120,7 @@ extern "C" {
     ) -> size_t;
     fn blsSignatureAdd(this_sig: *mut BlsSignature, other: *const BlsSignature);
     fn blsSignatureSub(this_sig: *mut BlsSignature, other: *const BlsSignature);
+    fn blsSignatureRecover(sig: *mut BlsSignature, sig_vec: *const BlsSignature, id_vec: *const BlsId, n: size_t) -> c_int;
 
     fn blsSign(sig: *mut BlsSignature, sk: *const BlsSecretKey, msg: *const uint8_t, size: size_t);
     fn blsVerify(
@@ -489,7 +490,15 @@ macro_rules! impl_sharing {
                         Err(())
                     }
                 }
+            }
+        }
+    }
+}
 
+macro_rules! impl_recover {
+    ($api_name:ident) => {
+        paste::item! {
+            impl [<Bls $api_name>] {
                 pub fn recover(shares: &[[<Bls $api_name>]], ids: &[BlsId], num_shares: usize) -> Result<Self, ()> {
                     let mut key = [<Bls $api_name>]::new();
 
@@ -520,3 +529,8 @@ impl_ops!(Signature);
 // Implement secret sharing APIs for supported types
 impl_sharing!(SecretKey);
 impl_sharing!(PublicKey);
+
+// Implement secret recovery APIs for supported types
+impl_recover!(SecretKey);
+impl_recover!(PublicKey);
+impl_recover!(Signature);
