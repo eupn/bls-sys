@@ -203,7 +203,7 @@ mod arithm {
 }
 
 mod secret_sharing {
-    use bls_sys::{bls_init, BlsSecretKey, CurveType, BlsId, BlsPublicKey};
+    use bls_sys::{bls_init, BlsId, BlsPublicKey, BlsSecretKey, CurveType};
 
     #[test]
     pub fn trivial_secret_sharing() {

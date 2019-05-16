@@ -60,8 +60,18 @@ extern "C" {
     fn blsSecretKeySetByCSPRNG(sk: *mut BlsSecretKey) -> c_int;
     fn blsSecretKeyAdd(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
     fn blsSecretKeySub(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
-    fn blsSecretKeyShare(sk: *mut BlsSecretKey, msk: *const BlsSecretKey, k: size_t, id: *const BlsId) -> c_int;
-    fn blsSecretKeyRecover(sk: *mut BlsSecretKey, sk_vec: *const BlsSecretKey, id_vec: *const BlsId, n: size_t) -> c_int;
+    fn blsSecretKeyShare(
+        sk: *mut BlsSecretKey,
+        msk: *const BlsSecretKey,
+        k: size_t,
+        id: *const BlsId,
+    ) -> c_int;
+    fn blsSecretKeyRecover(
+        sk: *mut BlsSecretKey,
+        sk_vec: *const BlsSecretKey,
+        id_vec: *const BlsId,
+        n: size_t,
+    ) -> c_int;
 
     fn blsPublicKeySerialize(
         buf: *mut uint8_t,
@@ -90,8 +100,18 @@ extern "C" {
     ) -> size_t;
     fn blsPublicKeyAdd(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
     fn blsPublicKeySub(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
-    fn blsPublicKeyShare(pk: *mut BlsPublicKey, mpk: *const BlsPublicKey, k: size_t, id: *const BlsId) -> c_int;
-    fn blsPublicKeyRecover(pk: *mut BlsPublicKey, pk_vec: *const BlsPublicKey, id_vec: *const BlsId, n: size_t) -> c_int;
+    fn blsPublicKeyShare(
+        pk: *mut BlsPublicKey,
+        mpk: *const BlsPublicKey,
+        k: size_t,
+        id: *const BlsId,
+    ) -> c_int;
+    fn blsPublicKeyRecover(
+        pk: *mut BlsPublicKey,
+        pk_vec: *const BlsPublicKey,
+        id_vec: *const BlsId,
+        n: size_t,
+    ) -> c_int;
 
     fn blsSignatureSerialize(
         buf: *mut uint8_t,
@@ -120,7 +140,12 @@ extern "C" {
     ) -> size_t;
     fn blsSignatureAdd(this_sig: *mut BlsSignature, other: *const BlsSignature);
     fn blsSignatureSub(this_sig: *mut BlsSignature, other: *const BlsSignature);
-    fn blsSignatureRecover(sig: *mut BlsSignature, sig_vec: *const BlsSignature, id_vec: *const BlsId, n: size_t) -> c_int;
+    fn blsSignatureRecover(
+        sig: *mut BlsSignature,
+        sig_vec: *const BlsSignature,
+        id_vec: *const BlsId,
+        n: size_t,
+    ) -> c_int;
 
     fn blsSign(sig: *mut BlsSignature, sk: *const BlsSecretKey, msg: *const uint8_t, size: size_t);
     fn blsVerify(
