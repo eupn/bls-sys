@@ -201,3 +201,30 @@ mod arithm {
         assert!(agg_sig.verify(&agg_pk, &msg[..]));
     }
 }
+
+mod secret_sharing {
+    use bls_sys::{bls_init, BlsSecretKey, CurveType, BlsId, BlsPublicKey};
+
+    #[test]
+    pub fn trivial_secret_sharing() {
+        bls_init(CurveType::Bls12CurveFp381).unwrap();
+
+        let mut id = BlsId::new();
+        id.set_int(123);
+
+        let sec1 = BlsSecretKey::new_random().unwrap();
+        let pub1 = sec1.to_public_key();
+
+        let sec2 = BlsSecretKey::new_share(&sec1, 1, &id).unwrap();
+        assert_eq!(sec1, sec2);
+
+        let sec2 = BlsSecretKey::recover(&[sec1.clone()], &[id.clone()], 1).unwrap();
+        assert_eq!(sec1, sec2);
+
+        let pub2 = BlsPublicKey::new_share(&pub1, 1, &id).unwrap();
+        assert_eq!(pub1, pub2);
+
+        let pub2 = BlsPublicKey::recover(&[pub1.clone()], &[id], 1).unwrap();
+        assert_eq!(pub1, pub2);
+    }
+}

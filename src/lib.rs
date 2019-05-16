@@ -60,6 +60,8 @@ extern "C" {
     fn blsSecretKeySetByCSPRNG(sk: *mut BlsSecretKey) -> c_int;
     fn blsSecretKeyAdd(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
     fn blsSecretKeySub(this_sk: *mut BlsSecretKey, other: *const BlsSecretKey);
+    fn blsSecretKeyShare(sk: *mut BlsSecretKey, msk: *const BlsSecretKey, k: size_t, id: *const BlsId) -> c_int;
+    fn blsSecretKeyRecover(sk: *mut BlsSecretKey, sk_vec: *const BlsSecretKey, id_vec: *const BlsId, k: size_t) -> c_int;
 
     fn blsPublicKeySerialize(
         buf: *mut uint8_t,
@@ -88,6 +90,8 @@ extern "C" {
     ) -> size_t;
     fn blsPublicKeyAdd(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
     fn blsPublicKeySub(this_pk: *mut BlsPublicKey, other: *const BlsPublicKey);
+    fn blsPublicKeyShare(sk: *mut BlsPublicKey, msk: *const BlsPublicKey, k: size_t, id: *const BlsId) -> c_int;
+    fn blsPublicKeyRecover(sk: *mut BlsPublicKey, sk_vec: *const BlsPublicKey, id_vec: *const BlsId, k: size_t) -> c_int;
 
     fn blsSignatureSerialize(
         buf: *mut uint8_t,
@@ -470,6 +474,38 @@ macro_rules! impl_ops {
     };
 }
 
+macro_rules! impl_sharing {
+    ($api_name:ident) => {
+        paste::item! {
+            impl [<Bls $api_name>] {
+                pub fn new_share(msk: &[<Bls $api_name>], num_shares: usize, id: &BlsId) -> Result<Self, ()> {
+                    let mut key = [<Bls $api_name>]::new();
+
+                    let res = unsafe { [<bls $api_name Share>](&mut key, msk, num_shares, id) };
+
+                    if res == 0 {
+                        Ok(key)
+                    } else {
+                        Err(())
+                    }
+                }
+
+                pub fn recover(shares: &[[<Bls $api_name>]], ids: &[BlsId], num_shares: usize) -> Result<Self, ()> {
+                    let mut key = [<Bls $api_name>]::new();
+
+                    let res = unsafe { [<bls $api_name Recover>](&mut key, shares.as_ptr(), ids.as_ptr(), num_shares) };
+
+                    if res == 0 {
+                        Ok(key)
+                    } else {
+                        Err(())
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Implement API methods for library types
 impl_api!(MclBnFr, Id);
 impl_api!(MclBnFr, SecretKey);
@@ -480,3 +516,7 @@ impl_api!(MclBnG1, Signature);
 impl_ops!(SecretKey);
 impl_ops!(PublicKey);
 impl_ops!(Signature);
+
+// Implement secret sharing APIs for supported types
+impl_sharing!(SecretKey);
+impl_sharing!(PublicKey);
